@@ -2,7 +2,9 @@
  * This template takes a single argument, a String containing a
  * message to display.
  *@
-@(message: String)
+
+@import play.api.libs.ws.WSResponse
+@(message: String, response: String)
 
 @*
  * Call the `main` template with two arguments. The first
@@ -16,5 +18,7 @@
         <title>@message</title>
     </head>
     <body>
+        You have been authorized to use Spotify data!
+        Response from redirect uri call is: @response
     </body>
 </html>
