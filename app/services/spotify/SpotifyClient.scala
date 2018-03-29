@@ -4,7 +4,7 @@ import java.net.URI
 
 import com.google.inject.Inject
 import com.wrapper.spotify.SpotifyApi
-import com.wrapper.spotify.model_objects.specification.Artist
+import com.wrapper.spotify.model_objects.specification.{AlbumSimplified, Artist, Paging}
 import models.SpotifyApiKeys
 import play.api.Configuration
 
@@ -19,13 +19,21 @@ class SpotifyClient @Inject()(config: Configuration) {
     new SpotifyApi.Builder()
       .setClientId(spotifyApiKeys.clientId)
       .setClientSecret(spotifyApiKeys.clientSecret)
-      .setRedirectUri(new URI(spotifyApiKeys.redirectUri)) 
+      .setRedirectUri(new URI(spotifyApiKeys.redirectUri))
       .setAccessToken(spotifyApiKeys.oauthToken)
       .build
   }
 
-  def getArtist(artistId: String)(): Artist = {
+  def getArtist(artistId: String): Artist = {
     val getArtistRequest = spotifyApi.getArtist(artistId).build()
     getArtistRequest.execute()
+  }
+
+  def getArtistAlbums(id: String): Paging[AlbumSimplified] = {
+    val getArtistsAlbumsRequest = spotifyApi.getArtistsAlbums(id)
+      .limit(10)
+      .album_type("album")
+      .build()
+    getArtistsAlbumsRequest.execute()
   }
 }
