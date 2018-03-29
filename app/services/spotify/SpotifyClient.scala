@@ -19,7 +19,7 @@ class SpotifyClient @Inject()(config: Configuration) {
     new SpotifyApi.Builder()
       .setClientId(spotifyApiKeys.clientId)
       .setClientSecret(spotifyApiKeys.clientSecret)
-      .setRedirectUri(new URI(spotifyApiKeys.redirectUri))
+      .setRedirectUri(new URI(spotifyApiKeys.redirectUri)) 
       .setAccessToken(spotifyApiKeys.oauthToken)
       .build
   }
