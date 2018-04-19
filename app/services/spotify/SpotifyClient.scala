@@ -12,9 +12,13 @@ import play.api.Configuration
 class SpotifyClient @Inject()(config: Configuration) {
   val spotifyApiKeys: SpotifyApiKeys = models.SpotifyApiKeys(config)
 
-  val spotifyApi: SpotifyApi = spotifyApiBuild(spotifyApiKeys)
+  val spotifyApi: SpotifyApi = new SpotifyApi.Builder()
+    .setClientId(spotifyApiKeys.clientId)
+    .setClientSecret(spotifyApiKeys.clientSecret)
+    .setRedirectUri(new URI(spotifyApiKeys.redirectUri))
+    .build()
 
-  def spotifyApiBuild(spotifyApiKeys: SpotifyApiKeys): SpotifyApi = {
+  def spotifyApiBuild(spotifyApiKeys: SpotifyApiKeys, redirectUri: String): SpotifyApi = {
     import com.wrapper.spotify.SpotifyApi
 
     new SpotifyApi.Builder()
@@ -38,6 +42,7 @@ class SpotifyClient @Inject()(config: Configuration) {
   }
 
   def authorizeCodeUri(): URI = {
+    val spotifyApi: SpotifyApi = spotifyApiBuild(spotifyApiKeys, "")
     val authorizationCodeUriRequest = spotifyApi.authorizationCodeUri
       .state("x4xkmn9pu3j6ukrs8n")
       .scope("user-read-birthdate,user-read-email,user-read-birthdate")
@@ -47,18 +52,18 @@ class SpotifyClient @Inject()(config: Configuration) {
     authorizationCodeUriRequest.execute()
   }
 
-  private def setTokens(authorizationCodeCredentials: AuthorizationCodeCredentials): Unit = {
+  def setTokens(authorizationCodeCredentials: AuthorizationCodeCredentials): Unit = {
     spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken)
     spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken)
   }
 
-  def authorizeCode(code: String): AuthorizationCodeCredentials = {
+  def authorizeCode(code: String, uri: URI): AuthorizationCodeCredentials = {
     val authorizationCodeRequest = spotifyApi.authorizationCode(code).build
 
     authorizationCodeRequest.execute()
   }
 
-  def authorizationCodeRefresh(refreshToken: String): AuthorizationCodeCredentials = {
+  def authorizationCodeRefresh(refreshToken: String, spotifyApi: SpotifyApi): AuthorizationCodeCredentials = {
     val authorizationCodeRefreshRequest = spotifyApi.authorizationCodeRefresh()
 
     authorizationCodeRefreshRequest.build().execute()

@@ -1,0 +1,24 @@
+@import com.wrapper.spotify.model_objects.specification.Artist
+@import com.wrapper.spotify.model_objects.specification.AlbumSimplified
+@import com.wrapper.spotify.model_objects.specification._
+
+@(artist: Artist, artistAlbumsPaging: Paging[AlbumSimplified], artistAlbums: Seq[AlbumSimplified])
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+    </head>
+    <body>
+        <p>Music suggester app authorized to use Spotify API!</p>
+
+        <p>Artist name: @{artist.getName}</p>
+
+        <p>Artist: @{artist.getName} has released the following albums @{artistAlbumsPaging.getTotal} albums: </p>
+
+        <ul>
+        @for(artistAlbum <- artistAlbums) {
+            <li>Album: @artistAlbum.getName</li>
+        }
+        </ul>
+    </body>
+</html>
