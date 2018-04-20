@@ -2,6 +2,7 @@ package controllers
 
 import java.net.URI
 
+import actors.SpotifyTokenRefreshScheduler
 import com.google.inject.Inject
 import com.wrapper.spotify.model_objects.specification.{AlbumSimplified, Paging}
 import javax.inject.Singleton
@@ -16,7 +17,8 @@ import scala.language.{implicitConversions, postfixOps}
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents,
                                spotifyClient: SpotifyClient,
-                               ws: WSClient)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+                               ws: WSClient,
+                               spotifyTokenRefreshScheduler: SpotifyTokenRefreshScheduler)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   val authorizeCodeUri = spotifyClient.authorizeCodeUri()
   val fut = callRedirectUri(authorizeCodeUri)

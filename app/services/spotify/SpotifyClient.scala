@@ -63,9 +63,11 @@ class SpotifyClient @Inject()(config: Configuration) {
     authorizationCodeRequest.execute()
   }
 
-  def authorizationCodeRefresh(refreshToken: String, spotifyApi: SpotifyApi): AuthorizationCodeCredentials = {
+  def authorizationCodeRefresh(): AuthorizationCodeCredentials = {
     val authorizationCodeRefreshRequest = spotifyApi.authorizationCodeRefresh()
+    val authorizationCodeCredentials = authorizationCodeRefreshRequest.build().execute()
+    setTokens(authorizationCodeCredentials)
 
-    authorizationCodeRefreshRequest.build().execute()
+    authorizationCodeCredentials
   }
 }
