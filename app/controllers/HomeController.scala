@@ -4,7 +4,6 @@ import java.net.URI
 
 import actors.SpotifyTokenRefreshScheduler
 import com.google.inject.Inject
-import com.wrapper.spotify.model_objects.specification.{AlbumSimplified, Paging}
 import javax.inject.Singleton
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.mvc._
@@ -46,11 +45,15 @@ class HomeController @Inject()(cc: ControllerComponents,
 
     spotifyClient.setTokens(authorizeCodeCredentials)
 
-    val artist = spotifyClient.getArtist("0OdUWJ0sBjDrqHygGUXeCF")
-    val artistAlbumsPaging: Paging[AlbumSimplified] = spotifyClient.getArtistAlbums("0OdUWJ0sBjDrqHygGUXeCF")
+    val artistFut = spotifyClient.getArtist("0OdUWJ0sBjDrqHygGUXeCF")
+    val artistAlbumsPagingFut = spotifyClient.getArtistAlbums("0OdUWJ0sBjDrqHygGUXeCF")
 
-    val artistAlbums = artistAlbumsPaging.getItems.toSeq
-    Future.successful(Ok(views.html.authorized(artist, artistAlbumsPaging, artistAlbums)))
+    val artistAlbumsFut = artistAlbumsPagingFut.map(artistAlbumsPaging => artistAlbumsPaging.getItems.toSeq)
+
+    for {artist <- artistFut
+         artistAlbumsPaging <- artistAlbumsPagingFut
+         artistAlbums <- artistAlbumsFut
+    } yield Ok(views.html.authorized(artist, artistAlbumsPaging, artistAlbums))
   }
 
   def authorized() = Action.async { _ =>

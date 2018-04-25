@@ -1,6 +1,7 @@
 package services.spotify
 
 import java.net.URI
+import java.util.concurrent.{Future => JFuture}
 
 import com.google.inject.Inject
 import com.wrapper.spotify.SpotifyApi
@@ -8,6 +9,10 @@ import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredential
 import com.wrapper.spotify.model_objects.specification.{AlbumSimplified, Artist, Paging}
 import models.SpotifyApiKeys
 import play.api.Configuration
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, Promise}
+import scala.util.Try
 
 class SpotifyClient @Inject()(config: Configuration) {
   val spotifyApiKeys: SpotifyApiKeys = models.SpotifyApiKeys(config)
@@ -28,17 +33,29 @@ class SpotifyClient @Inject()(config: Configuration) {
       .build
   }
 
-  def getArtist(artistId: String): Artist = {
+  def getArtist(artistId: String): Future[Artist] = {
     val getArtistRequest = spotifyApi.getArtist(artistId).build()
-    getArtistRequest.execute()
+    val artistJFut: JFuture[Artist] = getArtistRequest.executeAsync()
+    val promise = Promise[Artist]()
+    Future {
+      promise.complete(Try(artistJFut.get))
+    }
+    val artistFut: Future[Artist] = promise.future
+    artistFut
   }
 
-  def getArtistAlbums(id: String): Paging[AlbumSimplified] = {
+  def getArtistAlbums(id: String): Future[Paging[AlbumSimplified]] = {
     val getArtistsAlbumsRequest = spotifyApi.getArtistsAlbums(id)
       .limit(10)
       .album_type("album")
       .build()
-    getArtistsAlbumsRequest.execute()
+
+    val artistAlbumsJFut: JFuture[Paging[AlbumSimplified]] = getArtistsAlbumsRequest.executeAsync[Paging[AlbumSimplified]]()
+    val promise = Promise[Paging[AlbumSimplified]]()
+    Future {
+      promise.complete(Try(artistAlbumsJFut.get))
+    }
+    promise.future
   }
 
   def authorizeCodeUri(): URI = {
